@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카드 게임</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+        <!-- 턴 컨트롤 UI -->
+    <div class="turn-control" id="turnControl">
+        <div class="turn-info">
+            <div class="turn-number">턴 <span id="currentTurn">1</span>/13</div>
+            <div class="turn-phase" id="currentPhase">정리 시간</div>
+        </div>
+        <button class="next-phase-btn" id="nextPhaseBtn">식사 시간으로</button>
+    </div>
+
+    <!-- 게임 오버 오버레이 -->
+    <div class="game-over-overlay" id="gameOverOverlay">
+        <div class="game-over-content">
+            <h2>게임 종료</h2>
+            <p>13턴이 완료되었습니다!</p>
+            <button class="restart-btn" id="restartBtn">다시 시작</button>
+        </div>
+    </div>
+    <!-- 손전등 효과 -->
+    <div class="flashlight" id="flashlight"></div>
+    
+    <!-- 바닥의 카드들 -->
+    <!-- 보드 -->
+<div class="board">
+    <!-- 적 자리 -->
+    <div class="enemy-zone" id="enemyZone">
+        <div class="card enemy-card"
+            data-name="지배하는 망령"
+            data-atk="2800"
+            data-def="2400"
+            data-desc="턴 시작 시 필드의 언데드 몬스터 1장을 장악한다.">
+            <div class="card-header"><div class="card-name">지배하는 망령</div></div>
+            <div class="card-image" style="background: linear-gradient(135deg, #8b0000, #2b1b35);"></div>
+            <div class="card-stats">
+                <div class="card-stat">ATK/2800</div>
+                <div class="card-stat">DEF/2400</div>
+            </div>
+            <div class="card-description">
+                <div class="card-text">턴 시작 시 필드의 언데드 몬스터 1장을 장악한다.</div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 바닥(우리 필드) -->
+    <div class="table-surface">
+        <div class="ground-cards-wrapper">
+                <div class="ground-cards">
+                    <div class="card-slot">
+                        <div class="card" data-name="로아의 사자" data-atk="2700" data-def="2200" data-desc="어둠의 신 로아의 사자. 소환 시, 묘지의 몬스터 1체를 되살린다.">
+                        <div class="card-header"><div class="card-name">로아의 사자</div></div>
+                        <div class="card-image" style="background: linear-gradient(135deg, #5f0a87, #a4508b);"></div>
+                        <div class="card-stats"><div class="card-stat">ATK/2700</div><div class="card-stat">DEF/2200</div></div>
+                        <div class="card-description"><div class="card-text">어둠의 신 로아의 사자. 소환 시, 묘지의 몬스터 1체를 되살린다.</div></div>
+                        </div>
+                    </div>
+                    <div class="card-slot">
+                        <div class="card" data-name="피의 인형" data-atk="2300" data-def="1900" data-desc="자신이 받는 피해 절반을 상대에게 돌려준다. 전투 중 파괴되면 1000 데미지를 준다.">
+                        <div class="card-header"><div class="card-name">피의 인형</div></div>
+                        <div class="card-image" style="background: linear-gradient(135deg, #ff416c, #ff4b2b);"></div>
+                        <div class="card-stats"><div class="card-stat">ATK/2300</div><div class="card-stat">DEF/1900</div></div>
+                        <div class="card-description"><div class="card-text">자신이 받는 피해 절반을 상대에게 돌려준다. 전투 중 파괴되면 1000 데미지를 준다.</div></div>
+                        </div>
+                    </div>
+                    <div class="card-slot">
+                        <div class="card" data-name="망자의 속삭임" data-atk="1500" data-def="2800" data-desc="매 턴, 상대의 패를 무작위로 1장 확인할 수 있다.">
+                        <div class="card-header"><div class="card-name">망자의 속삭임</div></div>
+                        <div class="card-image" style="background: linear-gradient(135deg, #434343, #000000);"></div>
+                        <div class="card-stats"><div class="card-stat">ATK/1500</div><div class="card-stat">DEF/2800</div></div>
+                        <div class="card-description"><div class="card-text">매 턴, 상대의 패를 무작위로 1장 확인할 수 있다.</div></div>
+                        </div>
+                    </div>
+                    <div class="card-slot">
+                        <div class="card" data-name="부두 제단" data-atk="0" data-def="3000" data-desc="모든 부두족 몬스터의 공격력이 500 상승한다. 대신 이 카드가 파괴되면 전부 묘지로 간다.">
+                        <div class="card-header"><div class="card-name">부두 제단</div></div>
+                        <div class="card-image" style="background: linear-gradient(135deg, #ba8b02, #181818);"></div>
+                        <div class="card-stats"><div class="card-stat">ATK/0</div><div class="card-stat">DEF/3000</div></div>
+                        <div class="card-description"><div class="card-text">모든 부두족 몬스터의 공격력이 500 상승한다. 대신 이 카드가 파괴되면 전부 묘지로 간다.</div></div>
+                        </div>
+                    </div>
+                    <div class="card-slot">
+                        <div class="card" data-name="망령의 여사제" data-atk="2600" data-def="2100" data-desc="소환 시 자신의 라이프 500을 지불하고, 상대 몬스터 1체를 1턴 동안 봉인한다.">
+                        <div class="card-header"><div class="card-name">망령의 여사제</div></div>
+                        <div class="card-image" style="background: linear-gradient(135deg, #41295a, #2F0743);"></div>
+                        <div class="card-stats"><div class="card-stat">ATK/2600</div><div class="card-stat">DEF/2100</div></div>
+                        <div class="card-description"><div class="card-text">소환 시 자신의 라이프 500을 지불하고, 상대 몬스터 1체를 1턴 동안 봉인한다.</div></div>
+                        </div>
+                    </div>
+                    <div class="card-slot">
+                        <!-- 빈 슬롯 -->
+                    </div>
+                    <div class="graveyard" id="graveyard"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- 손에 있는 카드들 -->
+    <div class="hand-cards">
+        <div class="card" data-name="저주의 인형" data-atk="2000" data-def="1500" data-desc="상대 몬스터를 대상으로 지정하면, 그 몬스터의 공격력이 400 감소한다.">
+            <div class="card-header"><div class="card-name">저주의 인형</div></div>
+            <div class="card-image" style="background: linear-gradient(135deg, #8A2387, #E94057);"></div>
+            <div class="card-stats"><div class="card-stat">ATK/2000</div><div class="card-stat">DEF/1500</div></div>
+            <div class="card-description"><div class="card-text">상대 몬스터를 대상으로 지정하면, 그 몬스터의 공격력이 400 감소한다.</div></div>
+        </div>
+        <div class="card" data-name="영혼 매개자" data-atk="2200" data-def="1800" data-desc="묘지의 카드 1장을 다시 사용할 수 있다. 발동 시 라이프 300 감소.">
+            <div class="card-header"><div class="card-name">영혼 매개자</div></div>
+            <div class="card-image" style="background: linear-gradient(135deg, #654ea3, #eaafc8);"></div>
+            <div class="card-stats"><div class="card-stat">ATK/2200</div><div class="card-stat">DEF/1800</div></div>
+            <div class="card-description"><div class="card-text">묘지의 카드 1장을 다시 사용할 수 있다. 발동 시 라이프 300 감소.</div></div>
+        </div>
+        <div class="card" data-name="죽은 자의 제단" data-atk="1800" data-def="2400" data-desc="전투로 파괴될 경우, 양 플레이어는 각각 카드 1장 버림.">
+            <div class="card-header"><div class="card-name">죽은 자의 제단</div></div>
+            <div class="card-image" style="background: linear-gradient(135deg, #232526, #414345);"></div>
+            <div class="card-stats"><div class="card-stat">ATK/1800</div><div class="card-stat">DEF/2400</div></div>
+            <div class="card-description"><div class="card-text">전투로 파괴될 경우, 양 플레이어는 각각 카드 1장 버림.</div></div>
+        </div>
+        <div class="card" data-name="악령의 춤" data-atk="2400" data-def="1600" data-desc="전투 개시 시 상대 수비력 절반 감소.">
+            <div class="card-header"><div class="card-name">악령의 춤</div></div>
+            <div class="card-image" style="background: linear-gradient(135deg, #373B44, #4286f4);"></div>
+            <div class="card-stats"><div class="card-stat">ATK/2400</div><div class="card-stat">DEF/1600</div></div>
+            <div class="card-description"><div class="card-text">전투 개시 시 상대 수비력 절반 감소.</div></div>
+        </div>
+        <div class="card" data-name="부두 주술사" data-atk="2500" data-def="2100" data-desc="매 턴 1회, 상대 필드의 효과를 무효화한다.">
+            <div class="card-header"><div class="card-name">부두 주술사</div></div>
+            <div class="card-image" style="background: linear-gradient(135deg, #B993D6, #8CA6DB);"></div>
+            <div class="card-stats"><div class="card-stat">ATK/2500</div><div class="card-stat">DEF/2100</div></div>
+            <div class="card-description"><div class="card-text">매 턴 1회, 상대 필드의 효과를 무효화한다.</div></div>
+        </div>
+    </div>
+
+    <!-- 자세히 보기 오버레이 -->
+    <div class="detail-overlay" id="detailOverlay">
+        <div class="detail-card" id="detailCard">
+            <div class="detail-card-content">
+                <div class="card-header">
+                    <div class="card-name" id="detailName"></div>
+                </div>
+                <div class="card-image" id="detailImage"></div>
+                <div class="card-stats">
+                    <div class="card-stat" id="detailAtk"></div>
+                    <div class="card-stat" id="detailDef"></div>
+                </div>
+                <div class="card-description">
+                    <div class="card-text" id="detailDesc"></div>
+                </div>
+            </div>
+            <div class="card-back">
+                <div class="card-back-pattern"></div>
+                <div class="card-back-symbol">⛧</div>
+            </div>
+        </div>
+        <div class="detail-side" id="detailSide">
+            <h2 class="side-name" id="sideName"></h2>
+            <div class="side-stats">
+                <span id="sideAtk"></span>
+                <span id="sideDef"></span>
+            </div>
+            <div class="side-desc" id="sideDesc"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

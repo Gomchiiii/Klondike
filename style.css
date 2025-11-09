@@ -1,0 +1,811 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: #000000;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 40px 20px;
+    overflow: hidden;
+    position: relative;
+    cursor: none;
+}
+
+/* 부드러운 원형 손전등 (기본 모드) */
+.flashlight {
+    position: fixed;
+    width: 1000px;
+    height: 1000px;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.55) 0%,
+        rgba(255, 255, 255, 0.15) 25%,
+        rgba(255, 255, 255, 0.01) 45%,
+        transparent 30%
+    );
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease, opacity 0.3s ease, background 0.3s ease;
+    opacity: 1;
+}
+
+/* 자세히 보기 모드일 때만 손전등 바꾸기 */
+body.detail-mode .flashlight {
+    width: 1300px;
+    height: 1300px;
+    background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.5) 0%,
+        rgba(255, 255, 255, 0.35) 10%,
+        rgba(255, 255, 255, 0.1) 18%,
+        rgba(255, 255, 255, 0.0) 28%,
+        rgba(255, 255, 255, 0.05) 30%,
+        rgba(255, 255, 255, 0.0) 32%,
+        rgba(255, 255, 255, 0.01) 45%,
+        transparent 5%
+    );
+}
+
+/* 자세히 보기 시 카드 어둡게 */
+.detail-overlay.active .detail-card {
+    filter: brightness(0.55);
+    transition: filter 0.3s ease;
+}
+
+/* 전체 어두운 오버레이 */
+    body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(27, 10, 10, 0.7) 0%, rgba(0, 0, 0, 0.95) 90%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* 카드 위 어두운 오버레이 */
+.card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    pointer-events: none;
+    z-index: 10;
+    border-radius: 8px;
+    transition: opacity 0.3s ease;
+}
+
+.card:hover::after {
+    opacity: 0;
+}
+
+/* 드래그 원본 숨김 */
+.card.drag-source {
+    opacity: 0;
+}
+
+/* 드롭 직후 카드 오버레이 제거 */
+.card.no-overlay::after {
+    opacity: 0;
+}
+
+/* 드래그 중인 카드는 오버레이 제거 */
+.card.dragging::after {
+    opacity: 0;
+}
+
+/* 모든 게임 요소를 오버레이 위로 */
+.ground-cards,
+.hand-cards,
+.detail-overlay {
+    position: relative;
+    z-index: 2;
+}
+
+.ground-cards {
+    display: flex;
+    gap: 20px;
+    margin-top: 50px;
+    position: relative;
+}
+
+.card-slot {
+    width: 130px;
+    height: 190px;
+    border: 3px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    position: relative;
+}
+
+.card-slot .card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.card.dragging {
+    opacity: 0.7;
+    cursor: grabbing;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.card.selected::after {
+    content: '↓';
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 36px;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+    animation: bounce 0.6s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { top: -40px; }
+    50% { top: -50px; }
+}
+
+.card-slot.drop-target {
+    background: rgba(255, 215, 0, 0.2);
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.graveyard {
+    width: 130px;
+    height: 190px;
+    border: 3px dashed rgba(255, 50, 50, 0.6);
+    border-radius: 8px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(139, 0, 0, 0.1);
+}
+
+.graveyard::after {
+    content: '墓';
+    font-size: 60px;
+    color: rgba(255, 50, 50, 0.4);
+    font-weight: bold;
+}
+
+.graveyard.drop-target {
+    background: rgba(255, 50, 50, 0.3);
+    border-color: #ff3232;
+    box-shadow: 0 0 20px rgba(255, 50, 50, 0.6);
+}
+
+.graveyard.drop-target::after {
+    color: rgba(255, 50, 50, 0.8);
+}
+
+.card {
+    width: 120px;
+    height: 180px;
+    background: linear-gradient(145deg, #d9cfc1 0%, #b3a592 100%);
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    overflow: hidden;
+    padding: 6px;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(252, 250, 250, 0.2) 100%);
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.card-header {
+    width: 100%;
+    background: linear-gradient(135deg, #2c2416 0%, #4a3a28 100%);
+    border-radius: 4px;
+    padding: 4px;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.card-name {
+    font-size: 10px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.card-image {
+    width: 100%;
+    height: 70px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    border-radius: 4px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-image::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 60%);
+}
+
+.card-stats {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    padding: 3px;
+    margin-bottom: 3px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.card-stat {
+    font-size: 9px;
+    font-weight: bold;
+    color: #333;
+}
+
+.card-description {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 4px;
+    padding: 4px;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.card-text {
+    font-size: 7px;
+    line-height: 1.2;
+    color: #333;
+}
+
+.ground-cards .card:hover {
+    transform: translate(-50%, -50%) scale(1.05);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+.hand-cards {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    position: relative;
+    height: 260px; /* ↓ 살짝 낮춤 */
+    margin-bottom: 60; /* ↓ 아래 여백 제거 */
+    transform: translateY(-60px); /* ↑ 전체 손패를 위로 올림 */
+    z-index: 2;
+}
+
+
+.hand-cards .card {
+    position: absolute;
+    width: 160px;
+    height: 240px;
+    transform-origin: bottom center;
+}
+
+.hand-cards .card:nth-child(1) {
+    transform: translateX(-140px) translateY(30px) rotate(-12deg);
+    z-index: 1;
+}
+
+.hand-cards .card:nth-child(2) {
+    transform: translateX(-70px) translateY(8px) rotate(-6deg);
+    z-index: 2;
+}
+
+.hand-cards .card:nth-child(3) {
+    transform: translateX(0px) translateY(0px) rotate(0deg);
+    z-index: 3;
+}
+
+.hand-cards .card:nth-child(4) {
+    transform: translateX(70px) translateY(8px) rotate(6deg);
+    z-index: 4;
+}
+
+.hand-cards .card:nth-child(5) {
+    transform: translateX(140px) translateY(30px) rotate(12deg);
+    z-index: 5;
+}
+
+.hand-cards .card:hover {
+    transform: translateX(var(--x)) translateY(var(--y)) rotate(var(--r)) scale(1.1) !important;
+    z-index: 10 !important;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.8);
+}
+
+/* 자세히 보기 오버레이 */
+.detail-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    cursor: pointer;
+    gap: 24px;
+}
+
+.detail-side {
+    width: 280px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 18px 16px 16px;
+    color: #f6f6f6;
+    line-height: 1.4;
+    backdrop-filter: blur(4px);
+    pointer-events: none; /* 오버레이 클릭으로 닫기 유지하려면 */
+}
+
+.detail-side .side-name {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.detail-side .side-stats {
+    font-size: 13px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 12px;
+    opacity: 0.9;
+}
+
+.detail-side .side-desc {
+    font-size: 13px;
+    white-space: pre-line;
+}
+
+.detail-overlay.active {
+    display: flex;
+}
+
+.detail-card {
+    width: 350px;
+    height: 525px;
+    background: linear-gradient(145deg, #d9cfc1 0%, rgba(179, 165, 146, 0.85) 100%);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    cursor: default;
+    position: relative;
+    transition: transform 0.1s ease;
+    overflow: hidden;
+    --shine-x: 175px;
+    --shine-y: 262px;
+    --edge-angle: 45deg;
+}
+
+.detail-card::before {
+    content: '';
+    position: absolute;
+    left: var(--shine-x);
+    top: var(--shine-y);
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0.2) 30%,
+        rgba(255, 255, 255, 0.05) 60%,
+        transparent 100%
+    );
+    pointer-events: none;
+    z-index: 3;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.detail-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 20px;
+    padding: 3px;
+    background: linear-gradient(
+        var(--edge-angle, 45deg),
+        transparent 30%,
+        rgba(255, 255, 255, 0.6) 50%,
+        transparent 70%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 4;
+    opacity: 0.8;
+}
+
+.detail-card.flipped {
+    background: linear-gradient(145deg, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+.card-back {
+    display: none;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* 가죽 테이블 같은 질감 */
+    background: radial-gradient(circle at 40% 40%, #1a1a1a 0%, #0e0e0e 70%, #000 100%);
+    border-radius: 20px;
+    padding: 40px;
+    overflow: hidden;
+    box-shadow:
+    inset 0 0 35px rgba(0, 0, 0, 0.95),
+    0 0 20px rgba(50, 0, 0, 0.3);
+    background-image:
+    repeating-linear-gradient(45deg, rgba(60, 40, 40, 0.1) 0 4px, transparent 4px 8px),
+    repeating-linear-gradient(-45deg, rgba(60, 40, 40, 0.1) 0 4px, transparent 4px 8px);
+    background-blend-mode: overlay;
+}
+
+.detail-card.flipped .card-back {
+    display: flex;
+}
+
+.detail-card.flipped .detail-card-content {
+    display: none;
+}
+
+.card-back-symbol {
+    font-size: 180px;
+    color: rgba(200, 50, 50, 0.6);
+    text-shadow:
+    0 0 20px rgba(255, 30, 30, 0.4),
+    0 0 40px rgba(255, 0, 0, 0.3),
+    2px 2px 6px rgba(0, 0, 0, 0.9);
+    position: relative;
+    z-index: 1;
+    user-select: none;
+    font-family: 'Times New Roman', serif;
+    transform: rotate(-3deg);
+}
+
+.card-back-pattern {
+    position: absolute;
+    inset: 0;
+    /* 가죽 표면의 모공 같은 미세 노이즈 */
+    background-image: radial-gradient(circle at 1px 1px, rgba(60, 30, 30, 0.06) 1px, transparent 0),
+    radial-gradient(circle at 3px 3px, rgba(40, 20, 20, 0.05) 1px, transparent 0);
+    background-size: 4px 4px;
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(0.4px);
+}
+
+.detail-card-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px;
+}
+
+.detail-card .card-header {
+    width: 100%;
+    background: linear-gradient(135deg, #2c2416 0%, #4a3a28 100%);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.detail-card .card-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.detail-card .card-image {
+    width: 100%;
+    height: 220px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.detail-card .card-image::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 60%);
+}
+
+.detail-card .card-stats {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.detail-card .card-stat {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.detail-card .card-description {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 8px;
+    padding: 12px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.detail-card .card-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.detail-overlay.active {
+    animation: fadeIn 0.2s ease;
+}
+
+/* 전체 보드 래퍼 */
+.board {
+    position: relative;
+    z-index: 2;
+    width: min(1180px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    align-items: center;
+    margin-top: 20px;
+}
+
+/* 위쪽 적 카드 자리 */
+.enemy-zone {
+    width: 180px;
+    height: 260px;
+    border: 3px dashed rgba(255, 120, 120, 0.3);
+    border-radius: 14px;
+    background: radial-gradient(circle at 30% 30%, rgba(60,0,0,.5), rgba(0,0,0,0.95));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,.4);
+    /* pointer-events: none; */
+}
+
+.enemy-zone::before {
+    color: rgba(255,255,255,0.28);
+    font-size: 18px;
+    letter-spacing: 0.1em;
+}
+
+.enemy-zone .enemy-card {
+    width: 162px;
+    height: 234px;
+}
+
+/* 안에 글자들도 살짝 키움 */
+.enemy-zone .enemy-card .card-name {
+    font-size: 12px;
+}
+
+.enemy-zone .enemy-card .card-image {
+    height: 100px;
+}
+
+.enemy-zone .enemy-card .card-description .card-text {
+    font-size: 9px;
+}
+
+        /* 적 카드 호버 애니메이션 */
+.enemy-zone .enemy-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.enemy-zone .enemy-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.55);
+}
+
+/* 적 카드 오버레이 투명도도 일반 카드랑 맞추기 */
+.enemy-zone .enemy-card:hover::after {
+    opacity: 0;
+}
+
+
+.table-surface {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    transform-style: preserve-3d;
+    perspective: 1400px;
+}
+.ground-cards-wrapper {
+    transform: rotateX(28deg);
+    transform-origin: top center;
+    display: flex;
+    gap: 20px;
+    background: radial-gradient(circle, rgba(40,0,0,.0) 0%, rgba(0,0,0,0) 0%);
+    padding: 40px 40px 140px;
+    border-radius: 50%;
+}
+
+/* 턴 컨트롤 */
+.turn-control {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #444;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+}
+
+.turn-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: white;
+    font-family: 'Arial', sans-serif;
+}
+
+.turn-number {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.turn-phase {
+    font-size: 14px;
+    color: #ccc;
+}
+
+.turn-phase.cleanup {
+    color: #87ceeb;
+}
+
+.turn-phase.meal {
+    color: #ffa500;
+}
+
+.next-phase-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 14px;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.next-phase-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.next-phase-btn:active {
+    transform: translateY(0);
+}
+
+/* 게임 오버 오버레이 */
+.game-over-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.game-over-overlay.active {
+    display: flex;
+}
+
+.game-over-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 40px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.game-over-content h2 {
+    margin: 0 0 20px 0;
+    font-size: 32px;
+}
+
+.game-over-content p {
+    margin: 0 0 30px 0;
+    font-size: 18px;
+}
+
+.restart-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid white;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    padding: 12px 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.restart-btn:hover {
+    background: white;
+    color: #667eea;
+}
