@@ -738,7 +738,7 @@ body.detail-mode .flashlight {
 }
 
 .next-phase-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #ffd608 0%, #522200 100%);
     border: none;
     border-radius: 5px;
     color: white;
@@ -776,7 +776,7 @@ body.detail-mode .flashlight {
 }
 
 .game-over-content {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #bd0000 0%, #040000 100%);
     border-radius: 15px;
     padding: 40px;
     text-align: center;
@@ -807,5 +807,237 @@ body.detail-mode .flashlight {
 
 .restart-btn:hover {
     background: white;
-    color: #667eea;
+    color: #ff0000;
+}
+
+
+/* VHS 후처리 효과 */
+.vhs-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: multiply;
+}
+
+.vhs-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 255, 0, 0.03) 2px,
+            rgba(0, 255, 0, 0.03) 4px
+        );
+    animation: vhs-lines 0.1s infinite linear;
+}
+
+.vhs-overlay::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(ellipse at center, 
+            transparent 50%, 
+            rgba(0, 0, 0, 0.1) 100%
+        );
+    animation: vhs-flicker 0.15s infinite linear;
+}
+
+/* VHS 메인 효과를 body에 적용 */
+body.vhs-mode {
+    filter: 
+        sepia(0.2)
+        saturate(1.3)
+        hue-rotate(10deg)
+        contrast(1.1)
+        brightness(0.95);
+    animation: vhs-distortion 0.1s infinite;
+}
+
+/* VHS 왜곡 애니메이션 */
+@keyframes vhs-distortion {
+    0% {
+        transform: translateX(0) scaleY(1);
+        filter: 
+            sepia(0.2)
+            saturate(1.3)
+            hue-rotate(10deg)
+            contrast(1.1)
+            brightness(0.95);
+    }
+    20% {
+        transform: translateX(-2px) scaleY(0.998);
+        filter: 
+            sepia(0.3)
+            saturate(1.4)
+            hue-rotate(15deg)
+            contrast(1.2)
+            brightness(0.93);
+    }
+    40% {
+        transform: translateX(1px) scaleY(1.001);
+        filter: 
+            sepia(0.1)
+            saturate(1.2)
+            hue-rotate(5deg)
+            contrast(1.05)
+            brightness(0.97);
+    }
+    60% {
+        transform: translateX(-1px) scaleY(0.999);
+        filter: 
+            sepia(0.25)
+            saturate(1.35)
+            hue-rotate(12deg)
+            contrast(1.15)
+            brightness(0.94);
+    }
+    80% {
+        transform: translateX(2px) scaleY(1.002);
+        filter: 
+            sepia(0.15)
+            saturate(1.25)
+            hue-rotate(8deg)
+            contrast(1.08)
+            brightness(0.96);
+    }
+    100% {
+        transform: translateX(0) scaleY(1);
+        filter: 
+            sepia(0.2)
+            saturate(1.3)
+            hue-rotate(10deg)
+            contrast(1.1)
+            brightness(0.95);
+    }
+}
+
+/* VHS 스캔라인 애니메이션 */
+@keyframes vhs-lines {
+    0% { transform: translateY(0px); }
+    100% { transform: translateY(4px); }
+}
+
+/* VHS 깜빡임 애니메이션 */
+@keyframes vhs-flicker {
+    0% { opacity: 0.95; }
+    10% { opacity: 0.92; }
+    20% { opacity: 0.97; }
+    30% { opacity: 0.93; }
+    40% { opacity: 0.96; }
+    50% { opacity: 0.94; }
+    60% { opacity: 0.98; }
+    70% { opacity: 0.91; }
+    80% { opacity: 0.95; }
+    90% { opacity: 0.93; }
+    100% { opacity: 0.95; }
+}
+
+/* VHS 글리치 효과 (가끔 발생) */
+@keyframes vhs-glitch {
+    0% {
+        transform: translateX(0);
+        filter: hue-rotate(0deg);
+    }
+    10% {
+        transform: translateX(-5px);
+        filter: hue-rotate(90deg);
+    }
+    20% {
+        transform: translateX(5px);
+        filter: hue-rotate(180deg);
+    }
+    30% {
+        transform: translateX(-2px);
+        filter: hue-rotate(270deg);
+    }
+    40% {
+        transform: translateX(3px);
+        filter: hue-rotate(360deg);
+    }
+    50% {
+        transform: translateX(-1px);
+        filter: hue-rotate(0deg);
+    }
+    100% {
+        transform: translateX(0);
+        filter: hue-rotate(0deg);
+    }
+}
+
+/* 가끔씩 강한 글리치 효과 */
+.vhs-glitch {
+    animation: vhs-glitch 0.3s ease-in-out;
+}
+
+/* 강화된 색수차 효과 */
+.card-image {
+    position: relative;
+}
+
+/* 빨간색 채널 분리 */
+.card-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    filter: 
+        sepia(1) 
+        hue-rotate(0deg) 
+        saturate(5)
+        brightness(1.2);
+    mix-blend-mode: screen;
+    opacity: 0.4;
+    animation: chrom-aberration-red 0.15s infinite;
+}
+
+/* 청록색 채널 분리 */
+.card-image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    filter: 
+        sepia(1) 
+        hue-rotate(180deg) 
+        saturate(4)
+        brightness(0.9);
+    mix-blend-mode: multiply;
+    opacity: 0.3;
+    animation: chrom-aberration-cyan 0.12s infinite;
+}
+
+@keyframes chrom-aberration-red {
+    0% { transform: translate(-3px, -1px) scale(1.01); }
+    25% { transform: translate(-4px, 1px) scale(1.005); }
+    50% { transform: translate(-2px, -2px) scale(1.02); }
+    75% { transform: translate(-5px, 0px) scale(1.015); }
+    100% { transform: translate(-3px, -1px) scale(1.01); }
+}
+
+@keyframes chrom-aberration-cyan {
+    0% { transform: translate(3px, 1px) scale(0.99); }
+    25% { transform: translate(4px, -1px) scale(0.995); }
+    50% { transform: translate(2px, 2px) scale(0.98); }
+    75% { transform: translate(5px, 0px) scale(0.985); }
+    100% { transform: translate(3px, 1px) scale(0.99); }
 }

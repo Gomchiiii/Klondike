@@ -367,3 +367,245 @@
 
         // 기존 코드 마지막에 추가
         initializeTurnSystem();
+
+// VHS 효과 시스템
+let vhsEnabled = true;
+let vhsGlitchInterval;
+
+// VHS 효과 초기화
+function initVHSEffect() {
+    // body에 VHS 모드 클래스 추가
+    document.body.classList.add('vhs-mode');
+    
+    // 랜덤 글리치 효과
+    vhsGlitchInterval = setInterval(() => {
+        if (Math.random() < 0.05) { // 5% 확률로 글리치
+            triggerVHSGlitch();
+        }
+    }, 1000);
+    
+    // 색상 분리 효과 (RGB 분리)
+    addChromAberration();
+}
+
+// VHS 글리치 효과 트리거
+function triggerVHSGlitch() {
+    const body = document.body;
+    body.classList.add('vhs-glitch');
+    
+    setTimeout(() => {
+        body.classList.remove('vhs-glitch');
+    }, 300);
+}
+
+// 강화된 색수차 효과
+function addEnhancedChromAberration() {
+    const style = document.createElement('style');
+    style.textContent = `
+        /* 전체 화면에도 색수차 적용 */
+        body.vhs-mode::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                radial-gradient(circle at 30% 50%, 
+                    rgba(255, 0, 0, 0.1) 0%, 
+                    transparent 50%),
+                radial-gradient(circle at 70% 50%, 
+                    rgba(0, 255, 255, 0.08) 0%, 
+                    transparent 50%);
+            pointer-events: none;
+            z-index: 9998;
+            animation: screen-aberration 0.2s infinite;
+        }
+        
+        @keyframes screen-aberration {
+            0% { 
+                transform: translate(-1px, 0) scale(1.002); 
+                filter: hue-rotate(0deg);
+            }
+            20% { 
+                transform: translate(2px, -1px) scale(0.998); 
+                filter: hue-rotate(5deg);
+            }
+            40% { 
+                transform: translate(-2px, 1px) scale(1.001); 
+                filter: hue-rotate(-3deg);
+            }
+            60% { 
+                transform: translate(1px, -2px) scale(0.999); 
+                filter: hue-rotate(7deg);
+            }
+            80% { 
+                transform: translate(-1px, 2px) scale(1.003); 
+                filter: hue-rotate(-2deg);
+            }
+            100% { 
+                transform: translate(-1px, 0) scale(1.002); 
+                filter: hue-rotate(0deg);
+            }
+        }
+        
+        /* 손전등에도 색수차 효과 */
+        .flashlight {
+            box-shadow: 
+                0 0 200px 100px rgba(255, 255, 255, 0.1),
+                0 0 300px 150px rgba(255, 0, 0, 0.05),
+                0 0 400px 200px rgba(0, 255, 255, 0.03);
+        }
+        
+        /* 카드 호버시 색수차 강화 */
+        .card:hover .card-image::before {
+            opacity: 0.6;
+            transform: translate(-6px, -2px) scale(1.03);
+        }
+        
+        .card:hover .card-image::after {
+            opacity: 0.5;
+            transform: translate(6px, 2px) scale(0.97);
+        }
+        
+        /* 디테일 카드에 극강 색수차 */
+        .detail-card .card-image::before {
+            opacity: 0.7;
+            animation: detail-chrom-red 0.1s infinite;
+        }
+        
+        .detail-card .card-image::after {
+            opacity: 0.6;
+            animation: detail-chrom-cyan 0.08s infinite;
+        }
+        
+        @keyframes detail-chrom-red {
+            0% { transform: translate(-8px, -3px) scale(1.05); }
+            50% { transform: translate(-12px, 0px) scale(1.08); }
+            100% { transform: translate(-8px, -3px) scale(1.05); }
+        }
+        
+        @keyframes detail-chrom-cyan {
+            0% { transform: translate(8px, 3px) scale(0.95); }
+            50% { transform: translate(12px, 0px) scale(0.92); }
+            100% { transform: translate(8px, 3px) scale(0.95); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// 기존 addChromAberration 함수 교체
+function addChromAberration() {
+    addEnhancedChromAberration();
+}
+
+// 글리치 시 색수차 폭발 효과
+function triggerVHSGlitch() {
+    const body = document.body;
+    body.classList.add('vhs-glitch');
+    
+    // 글리치 중 색수차 극대화
+    const glitchStyle = document.createElement('style');
+    glitchStyle.id = 'glitch-chrom';
+    glitchStyle.textContent = `
+        .vhs-glitch .card-image::before {
+            opacity: 0.9 !important;
+            transform: translate(-15px, -5px) scale(1.1) !important;
+            animation: glitch-chrom-red 0.05s infinite !important;
+        }
+        
+        .vhs-glitch .card-image::after {
+            opacity: 0.8 !important;
+            transform: translate(15px, 5px) scale(0.9) !important;
+            animation: glitch-chrom-cyan 0.03s infinite !important;
+        }
+        
+        @keyframes glitch-chrom-red {
+            0% { transform: translate(-20px, -8px) scale(1.15); }
+            50% { transform: translate(-10px, -2px) scale(1.05); }
+            100% { transform: translate(-20px, -8px) scale(1.15); }
+        }
+        
+        @keyframes glitch-chrom-cyan {
+            0% { transform: translate(20px, 8px) scale(0.85); }
+            50% { transform: translate(10px, 2px) scale(0.95); }
+            100% { transform: translate(20px, 8px) scale(0.85); }
+        }
+    `;
+    document.head.appendChild(glitchStyle);
+    
+    setTimeout(() => {
+        body.classList.remove('vhs-glitch');
+        document.getElementById('glitch-chrom')?.remove();
+    }, 300);
+}
+
+// VHS 노이즈 패턴 생성
+function createVHSNoise() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 200;
+    canvas.height = 200;
+    
+    const imageData = ctx.createImageData(canvas.width, canvas.height);
+    
+    for (let i = 0; i < imageData.data.length; i += 4) {
+        const noise = Math.random() * 255;
+        imageData.data[i] = noise * 0.3;     // R
+        imageData.data[i + 1] = noise * 0.2; // G
+        imageData.data[i + 2] = noise * 0.4; // B
+        imageData.data[i + 3] = 20;          // Alpha
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+    
+    // 노이즈를 배경으로 추가
+    const vhsOverlay = document.getElementById('vhsOverlay');
+    if (vhsOverlay) {
+        vhsOverlay.style.backgroundImage = `url(${canvas.toDataURL()})`;
+        vhsOverlay.style.backgroundSize = '100px 100px';
+        vhsOverlay.style.opacity = '0.03';
+        vhsOverlay.style.animation = 'vhs-noise 0.1s infinite';
+    }
+}
+
+// VHS 노이즈 애니메이션
+const vhsNoiseStyle = document.createElement('style');
+vhsNoiseStyle.textContent = `
+    @keyframes vhs-noise {
+        0% { background-position: 0 0; }
+        10% { background-position: -5px -10px; }
+        20% { background-position: -15px 5px; }
+        30% { background-position: 7px -25px; }
+        40% { background-position: -5px 25px; }
+        50% { background-position: -15px 10px; }
+        60% { background-position: 15px 0px; }
+        70% { background-position: 0px 15px; }
+        80% { background-position: 3px -10px; }
+        90% { background-position: -10px 10px; }
+        100% { background-position: 0 0; }
+    }
+`;
+document.head.appendChild(vhsNoiseStyle);
+
+// VHS 토글 함수 (필요시 사용)
+function toggleVHS() {
+    vhsEnabled = !vhsEnabled;
+    
+    if (vhsEnabled) {
+        document.body.classList.add('vhs-mode');
+        document.getElementById('vhsOverlay').style.display = 'block';
+    } else {
+        document.body.classList.remove('vhs-mode');
+        document.getElementById('vhsOverlay').style.display = 'none';
+    }
+}
+
+// 초기화 실행
+document.addEventListener('DOMContentLoaded', () => {
+    initVHSEffect();
+    createVHSNoise();
+});
+
+// 기존 코드 마지막에 추가
+initVHSEffect();
